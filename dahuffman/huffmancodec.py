@@ -1,12 +1,11 @@
-import itertools
 import collections
+import itertools
+import sys
 from heapq import heappush, heappop, heapify
 
 # Oneliner to create singleton end-of-file symbol object
 _EOF = type('EOF', (object,), {'__repr__': lambda self: '_EOF'})()
 
-
-# TODO add human readable dump of code table
 
 class HuffmanCodec(object):
     """
@@ -38,6 +37,7 @@ class HuffmanCodec(object):
             )
             heappush(heap, merged)
 
+        # Code table is dictionary mapping symbol to (bitsize, value)
         self._table = dict(heappop(heap)[1])
 
     @classmethod
@@ -50,6 +50,16 @@ class HuffmanCodec(object):
         """
         frequencies = collections.Counter(data)
         return cls(frequencies)
+
+    def dump(self, out=sys.stdout):
+        """
+        Dump code table
+        """
+        out.write('bits  code       (value)  symbol\n')
+        for symbol, (bitsize, value) in sorted(self._table.iteritems()):
+            out.write('{b:4d}  {c:10} ({v:5d})  {s!r}\n'.format(
+                b=bitsize, v=value, s=symbol, c=bin(value)[2:].rjust(bitsize, '0')
+            ))
 
     def encode(self, data):
         """
