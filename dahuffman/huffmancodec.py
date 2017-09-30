@@ -113,9 +113,8 @@ class HuffmanCodec(object):
         :param data: sequence of bytes (string, list or generator of bytes)
         :return: generator of symbols
         """
-        # Inverted (nested) lookup table: map code size to code values to symbols
-        # TODO lookup in two levels?
-        table = dict(((b, v), s) for (s, (b, v)) in self._table.iteritems())
+        # Reverse lookup table: map (bitsize, value) to symbols
+        lookup = dict(((b, v), s) for (s, (b, v)) in self._table.iteritems())
 
         buffer = 0
         size = 0
@@ -123,8 +122,8 @@ class HuffmanCodec(object):
             for m in [128, 64, 32, 16, 8, 4, 2, 1]:
                 buffer = (buffer << 1) + bool(ord(byte) & m)
                 size += 1
-                if (size, buffer) in table:
-                    symbol = table[size, buffer]
+                if (size, buffer) in lookup:
+                    symbol = lookup[size, buffer]
                     if symbol == _EOF:
                         return
                     yield symbol
