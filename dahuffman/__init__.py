@@ -1,2 +1,1 @@
-
-from .dahuffman import encoding_table, encode, decode
+from .huffmancodec import HuffmanCodec
