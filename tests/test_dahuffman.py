@@ -7,6 +7,9 @@ import pytest
 import dahuffman
 
 
+# TODO tox for py3
+
+
 @pytest.mark.parametrize('data', [
     "hello world, how are you doing today?",
     b"hello world, how are you doing today?",
@@ -41,19 +44,17 @@ def test_trailing_zero_handling():
     so 'abba' would be 4 bits '0110', trailed with zeros to fill a byte: '0110000', which is indiscernible
     from result of input 'abbaaaaa'. With proper end-of-file handling, trailing bits are ignored properly.
     """
-    codec = dahuffman.HuffmanCodec({'a': 1, 'b': 1})
+    codec = dahuffman.HuffmanCodec.from_frequencies({'a': 1, 'b': 1})
     decoded = codec.decode(codec.encode('abba'))
     assert decoded == 'abba'
 
 
 def test_dump():
-    codec = dahuffman.HuffmanCodec({'a': 2, 'b': 4, 'c': 8})
+    codec = dahuffman.HuffmanCodec.from_frequencies({'a': 2, 'b': 4, 'c': 8})
     out = StringIO.StringIO()
-    codec.dump(out=out)
+    codec.print_code_table(out=out)
     dump = out.getvalue()
     assert re.search(r"1\s+1\s+.*'c'", dump)
     assert re.search(r"2\s+01\s+.*'b'", dump)
     assert re.search(r"3\s+001\s+.*'a'", dump)
     assert re.search(r"3\s+000\s+.*_EOF", dump)
-
-# TODO tox for py3

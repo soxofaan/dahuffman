@@ -7,53 +7,40 @@ from heapq import heappush, heappop, heapify
 _EOF = type('EOF', (object,), {'__repr__': lambda self: '_EOF'})()
 
 
-class HuffmanCodec(object):
+# TODO store/load code table from file
+
+
+class PrefixCodec(object):
     """
-    Huffman coder, with code table built from given symbol frequencies or raw data,
-    providing encoding and decoding methods.
+    Prefix code codec, using given code table.
     """
 
-    def __init__(self, frequencies):
+    def __init__(self, code_table, check=True):
         """
-        Build Huffman code table from given symbol frequencies
-        :param frequencies: symbol to frequency mapping
+        Initialize codec with given code table.
+
+        :param code_table: mapping of symbol to code tuple (bitsize, value)
+        :param check: whether to check the code table
         """
-        # Heap consists of tuples: (frequency, [list of tuples: (symbol, (bitsize, value))])
-        heap = [(f, [(s, (0, 0))]) for s, f in frequencies.iteritems()]
-        # Add EOF symbol.
-        heap.append((1, [(_EOF, (0, 0))]))
-
-        # Use heapq approach to build the encodings of the huffman tree leaves.
-        heapify(heap)
-        while len(heap) > 1:
-            # Pop the 2 smallest items from heap
-            a = heappop(heap)
-            b = heappop(heap)
-            # Merge nodes (update codes for each symbol appropriately)
-            merged = (
-                a[0] + b[0],
-                [(s, (n + 1, v)) for (s, (n, v)) in a[1]]
-                + [(s, (n + 1, (1 << n) + v)) for (s, (n, v)) in b[1]]
-            )
-            heappush(heap, merged)
-
         # Code table is dictionary mapping symbol to (bitsize, value)
-        self._table = dict(heappop(heap)[1])
+        self._table = code_table
+        if check:
+            assert isinstance(self._table, dict) and all(
+                isinstance(b, int) and b >= 1 and isinstance(v, int) and v >= 0
+                for (b, v) in self._table.itervalues()
+            )
+            # TODO check if code table is actually a prefix code
 
-    @classmethod
-    def from_data(cls, data):
+    def get_code_table(self):
         """
-        Build Huffman code table from symbol sequence
+        Get code table
+        :return: dictionary mapping symbol to code tuple (bitsize, value)
+        """
+        return self._table
 
-        :param data: sequence of symbols (e.g. byte string, unicode string, list, iterator)
-        :return: HuffmanCoder
+    def print_code_table(self, out=sys.stdout):
         """
-        frequencies = collections.Counter(data)
-        return cls(frequencies)
-
-    def dump(self, out=sys.stdout):
-        """
-        Dump code table
+        Print code table overview
         """
         out.write('bits  code       (value)  symbol\n')
         for symbol, (bitsize, value) in sorted(self._table.iteritems()):
@@ -129,3 +116,50 @@ class HuffmanCodec(object):
                     yield symbol
                     buffer = 0
                     size = 0
+
+
+class HuffmanCodec(PrefixCodec):
+    """
+    Huffman coder, with code table built from given symbol frequencies or raw data,
+    providing encoding and decoding methods.
+    """
+
+    @classmethod
+    def from_frequencies(cls, frequencies):
+        """
+        Build Huffman code table from given symbol frequencies
+        :param frequencies: symbol to frequency mapping
+        """
+        # Heap consists of tuples: (frequency, [list of tuples: (symbol, (bitsize, value))])
+        heap = [(f, [(s, (0, 0))]) for s, f in frequencies.iteritems()]
+        # Add EOF symbol.
+        heap.append((1, [(_EOF, (0, 0))]))
+
+        # Use heapq approach to build the encodings of the huffman tree leaves.
+        heapify(heap)
+        while len(heap) > 1:
+            # Pop the 2 smallest items from heap
+            a = heappop(heap)
+            b = heappop(heap)
+            # Merge nodes (update codes for each symbol appropriately)
+            merged = (
+                a[0] + b[0],
+                [(s, (n + 1, v)) for (s, (n, v)) in a[1]]
+                + [(s, (n + 1, (1 << n) + v)) for (s, (n, v)) in b[1]]
+            )
+            heappush(heap, merged)
+
+        # Code table is dictionary mapping symbol to (bitsize, value)
+        table = dict(heappop(heap)[1])
+        return cls(table, check=False)
+
+    @classmethod
+    def from_data(cls, data):
+        """
+        Build Huffman code table from symbol sequence
+
+        :param data: sequence of symbols (e.g. byte string, unicode string, list, iterator)
+        :return: HuffmanCoder
+        """
+        frequencies = collections.Counter(data)
+        return cls.from_frequencies(frequencies)
