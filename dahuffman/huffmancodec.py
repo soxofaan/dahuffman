@@ -8,6 +8,7 @@ _EOF = type('EOF', (object,), {'__repr__': lambda self: '_EOF'})()
 
 
 # TODO store/load code table from file
+# TODO Directly encode to and decode from file
 
 
 class PrefixCodec(object):
