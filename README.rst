@@ -16,6 +16,12 @@ Features and design
   for example chess moves or sequences of categorical data, as long as these symbols
   can be used as keys in dictionaries (meaning they should be hashable).
 
+Installation
+------------
+
+TODO
+
+
 Usage
 -----
 
@@ -24,10 +30,10 @@ Basic usage example, where the code table is built based on given symbol frequen
     >>> from dahuffman import HuffmanCodec
     >>> codec = HuffmanCodec.from_frequencies({'e': 100, 'n':20, 'x':1, 'i': 40, 'q':3})
     >>> encoded = codec.encode('exeneeeexniqneieini')
-    >>> len(encoded)
-    6
     >>> encoded
     '\x86|%\x13i@'
+    >>> len(encoded)
+    6
     >>> codec.decode(encoded)
     'exeneeeexniqneieini'
 
@@ -50,7 +56,7 @@ Using it with sequences of symbols (country codes in this example)::
     'L\xca'
     >>> len(encoded)
     2
-    >>> codec.decode(encoded, as_list=True)
+    >>> codec.decode(encoded)
     ['FR', 'IT', 'BE', 'FR', 'UK']
 
 

@@ -3,12 +3,50 @@ import itertools
 import sys
 from heapq import heappush, heappop, heapify
 
-# Oneliner to create singleton end-of-file symbol object
-_EOF = type('EOF', (object,), {'__repr__': lambda self: '_EOF'})()
+from .compat import to_byte, from_byte, concat_bytes
+
+
+class _EndOfFileSymbol(object):
+    """
+    Internal class for "end of file" symbol to be able
+    to detect the end of the encoded bit stream,
+    which does not necessarily align with byte boundaries.
+    """
+
+    def __repr__(self):
+        return '_EOF'
+
+    # Because _EOF will be compared with normal symbols (strings, bytes),
+    # we have to provide a minimal set of comparison methods.
+    # We'll make _EOF smaller than the rest (meaning lowest frequency)
+    def __lt__(self, other):
+        return True
+
+    def __gt__(self, other):
+        return False
+
+    def __eq__(self, other):
+        return other.__class__ == self.__class__
+
+    def __hash__(self):
+        return hash(self.__class__)
+
+
+# Singleton-like "end of file" symbol
+_EOF = _EndOfFileSymbol()
 
 
 # TODO store/load code table from file
 # TODO Directly encode to and decode from file
+
+def _guess_concat(data):
+    """
+    Guess concat function from given data
+    """
+    return {
+        type(u''): u''.join,
+        type(b''): concat_bytes,
+    }.get(type(data), list)
 
 
 class PrefixCodec(object):
@@ -16,15 +54,17 @@ class PrefixCodec(object):
     Prefix code codec, using given code table.
     """
 
-    def __init__(self, code_table, check=True):
+    def __init__(self, code_table, concat=list, check=True):
         """
         Initialize codec with given code table.
 
         :param code_table: mapping of symbol to code tuple (bitsize, value)
+        :param concat: function to concatenate symbols
         :param check: whether to check the code table
         """
         # Code table is dictionary mapping symbol to (bitsize, value)
         self._table = code_table
+        self._concat = concat
         if check:
             assert isinstance(self._table, dict) and all(
                 isinstance(b, int) and b >= 1 and isinstance(v, int) and v >= 0
@@ -43,9 +83,9 @@ class PrefixCodec(object):
         """
         Print code table overview
         """
-        out.write('bits  code       (value)  symbol\n')
-        for symbol, (bitsize, value) in sorted(self._table.iteritems()):
-            out.write('{b:4d}  {c:10} ({v:5d})  {s!r}\n'.format(
+        out.write(u'bits  code       (value)  symbol\n')
+        for symbol, (bitsize, value) in sorted(self._table.items()):
+            out.write(u'{b:4d}  {c:10} ({v:5d})  {s!r}\n'.format(
                 b=bitsize, v=value, s=symbol, c=bin(value)[2:].rjust(bitsize, '0')
             ))
 
@@ -56,18 +96,19 @@ class PrefixCodec(object):
         :param data: sequence of symbols (e.g. byte string, unicode string, list, iterator)
         :return: byte string
         """
-        return b''.join(self.encode_streaming(data))
+        return concat_bytes(self.encode_streaming(data))
 
     def encode_streaming(self, data):
         """
         Encode given data in streaming fashion.
 
         :param data: sequence of symbols (e.g. byte string, unicode string, list, iterator)
-        :return: generator of bytes
+        :return: generator of bytes (single character strings in Python2, ints in Python 3)
         """
         # Buffer value and size
         buffer = 0
         size = 0
+        # TODO: Only append EOF when necessary
         for s in itertools.chain(data, [_EOF]):
             b, v = self._table[s]
             # Shift new bits in the buffer
@@ -75,12 +116,12 @@ class PrefixCodec(object):
             size += b
             while size >= 8:
                 byte = buffer >> (size - 8)
-                yield chr(byte)  # TODO py3
+                yield to_byte(byte)
                 buffer = buffer - (byte << (size - 8))
                 size -= 8
         # Final sub-byte chunk
         if size > 0:
-            yield chr(buffer << (8 - size))  # TODO py3
+            yield to_byte(buffer << (8 - size))
 
     def decode(self, data, as_list=False):
         """
@@ -90,9 +131,7 @@ class PrefixCodec(object):
         :param as_list: whether to return as a list instead of
         :return:
         """
-        # TODO: autodetect join: as list, as byte string or as unicode string?
-        cat = list if as_list else "".join
-        return cat(self.decode_streaming(data))
+        return self._concat(self.decode_streaming(data))
 
     def decode_streaming(self, data):
         """
@@ -102,13 +141,13 @@ class PrefixCodec(object):
         :return: generator of symbols
         """
         # Reverse lookup table: map (bitsize, value) to symbols
-        lookup = dict(((b, v), s) for (s, (b, v)) in self._table.iteritems())
+        lookup = dict(((b, v), s) for (s, (b, v)) in self._table.items())
 
         buffer = 0
         size = 0
         for byte in data:
             for m in [128, 64, 32, 16, 8, 4, 2, 1]:
-                buffer = (buffer << 1) + bool(ord(byte) & m)
+                buffer = (buffer << 1) + bool(from_byte(byte) & m)
                 size += 1
                 if (size, buffer) in lookup:
                     symbol = lookup[size, buffer]
@@ -126,14 +165,18 @@ class HuffmanCodec(PrefixCodec):
     """
 
     @classmethod
-    def from_frequencies(cls, frequencies):
+    def from_frequencies(cls, frequencies, concat=None):
         """
         Build Huffman code table from given symbol frequencies
         :param frequencies: symbol to frequency mapping
+        :param concat: function to concatenate symbols
         """
+        concat = concat or _guess_concat(next(iter(frequencies)))
+
         # Heap consists of tuples: (frequency, [list of tuples: (symbol, (bitsize, value))])
-        heap = [(f, [(s, (0, 0))]) for s, f in frequencies.iteritems()]
+        heap = [(f, [(s, (0, 0))]) for s, f in frequencies.items()]
         # Add EOF symbol.
+        # TODO: argument to set frequency of EOF?
         heap.append((1, [(_EOF, (0, 0))]))
 
         # Use heapq approach to build the encodings of the huffman tree leaves.
@@ -152,7 +195,8 @@ class HuffmanCodec(PrefixCodec):
 
         # Code table is dictionary mapping symbol to (bitsize, value)
         table = dict(heappop(heap)[1])
-        return cls(table, check=False)
+
+        return cls(table, concat=concat, check=False)
 
     @classmethod
     def from_data(cls, data):
@@ -163,4 +207,4 @@ class HuffmanCodec(PrefixCodec):
         :return: HuffmanCoder
         """
         frequencies = collections.Counter(data)
-        return cls.from_frequencies(frequencies)
+        return cls.from_frequencies(frequencies, concat=_guess_concat(data))
