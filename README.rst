@@ -31,8 +31,9 @@ Features and design
 Installation
 ------------
 
-TODO
+.. code-block:: bash
 
+    pip install dahuffman
 
 Usage
 -----
