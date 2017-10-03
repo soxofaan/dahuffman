@@ -57,3 +57,23 @@ def test_print_code_table():
     assert re.search(r"2\s+01\s+.*'b'", dump)
     assert re.search(r"3\s+001\s+.*'a'", dump)
     assert re.search(r"3\s+000\s+.*_EOF", dump)
+
+
+def test_eof_cut_off():
+    # Using frequency table that should give this encoding
+    # A   -> 0
+    # B   -> 11
+    # C   -> 101
+    # EOF -> 100
+    codec = HuffmanCodec.from_frequencies({'A': 5, 'B': 4, 'C': 2, })
+    cases = {
+        # Straightforward cases
+        '': 0, 'A': 1, 'AB': 1, 'ABB': 1, 'CCC': 2,
+        # Cases where EOF cut-off saves one output byte
+        'ACC': 1, 'CC': 1,
+        'CCCCC': 2,
+    }
+    for data, expected_length in cases.items():
+        encoded = codec.encode(data)
+        assert len(encoded) == expected_length
+        assert data == codec.decode(encoded)

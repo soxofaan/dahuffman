@@ -108,8 +108,7 @@ class PrefixCodec(object):
         # Buffer value and size
         buffer = 0
         size = 0
-        # TODO: Only append EOF when necessary
-        for s in itertools.chain(data, [_EOF]):
+        for s in data:
             b, v = self._table[s]
             # Shift new bits in the buffer
             buffer = (buffer << b) + v
@@ -119,9 +118,23 @@ class PrefixCodec(object):
                 yield to_byte(byte)
                 buffer = buffer - (byte << (size - 8))
                 size -= 8
-        # Final sub-byte chunk
+
+        # Handling of the final sub-byte chunk.
+        # The end of the encoded bit stream does not align necessarily with byte boundaries,
+        # so we need an "end of file" indicator symbol (_EOF) to guard against decoding
+        # the non-data trailing bits of the last byte.
+        # As an optimization however, while encoding _EOF, it is only necessary to encode up to
+        # the end of the current byte and cut off there.
+        # No new byte has to be started for the remainder, saving us one (or more) output bytes.
         if size > 0:
-            yield to_byte(buffer << (8 - size))
+            b, v = self._table[_EOF]
+            buffer = (buffer << b) + v
+            size += b
+            if size >= 8:
+                byte = buffer >> (size - 8)
+            else:
+                byte = buffer << (8 - size)
+            yield to_byte(byte)
 
     def decode(self, data, as_list=False):
         """
