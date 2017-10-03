@@ -43,7 +43,7 @@ Basic usage example, where the code table is built based on given symbol frequen
     >>> codec = HuffmanCodec.from_frequencies({'e': 100, 'n':20, 'x':1, 'i': 40, 'q':3})
     >>> encoded = codec.encode('exeneeeexniqneieini')
     >>> encoded
-    '\x86|%\x13i@'
+    b'\x86|%\x13i@'
     >>> len(encoded)
     6
     >>> codec.decode(encoded)
@@ -62,7 +62,7 @@ You can also "train" the codec by providing it data directly::
 
     >>> codec = HuffmanCodec.from_data('hello world how are you doing today foo bar lorem ipsum')
     >>> codec.encode('do lo er ad od')
-    '^O\x1a\xc4S\xab\x80'
+    b'^O\x1a\xc4S\xab\x80'
     >>> len(_)
     7
 
@@ -73,7 +73,7 @@ Using it with sequences of symbols (country codes in this example)::
     >>> codec = HuffmanCodec.from_data(countries)
     >>> encoded = codec.encode(['FR', 'IT', 'BE', 'FR', 'UK'])
     >>> encoded
-    'L\xca'
+    b'L\xca'
     >>> len(encoded)
     2
     >>> codec.decode(encoded)
