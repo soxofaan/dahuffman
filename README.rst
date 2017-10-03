@@ -15,6 +15,8 @@ Features and design
 - Not limited to byte/unicode string input, can handle other "symbols" or tokens,
   for example chess moves or sequences of categorical data, as long as these symbols
   can be used as keys in dictionaries (meaning they should be hashable).
+- properly handle end of encoded bit stream if it does not align with byte boundaries
+- supports both Python 2.7 and Python 3.6
 
 Installation
 ------------
@@ -36,6 +38,14 @@ Basic usage example, where the code table is built based on given symbol frequen
     6
     >>> codec.decode(encoded)
     'exeneeeexniqneieini'
+    >>> codec.print_code_table()
+    bits  code       (value)  symbol
+       5  00000      (    0)  _EOF
+       1  1          (    1)  'e'
+       2  01         (    1)  'i'
+       3  001        (    1)  'n'
+       4  0001       (    1)  'q'
+       5  00001      (    1)  'x'
 
 
 You can also "train" the codec by providing it data directly::
