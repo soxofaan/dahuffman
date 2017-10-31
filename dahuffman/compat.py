@@ -1,13 +1,13 @@
 """
-Poor mans py2/py3 compatibility layer
+Poor man's py2/py3 compatibility layer.
 """
 
 import sys
 
 # The handling of byte strings is slightly different between
 # Python 2 (str object) and Python 3 (bytes object).
-# Encoding from symbols to bytes (and vise versa) is done
-# correspondingly different.
+# Encoding from symbols to bytes (and vice versa) is done in a
+# correspondingly different way.
 if sys.version[0] == '2':
     # Python 2: iterating over a (byte) string yields single characters strings.
     # During encoding and decoding where we work with int values
