@@ -3,7 +3,7 @@ import itertools
 import sys
 from heapq import heappush, heappop, heapify
 
-from .compat import to_byte, from_byte, concat_bytes
+from dahuffman.compat import to_byte, from_byte, concat_bytes
 
 
 class _EndOfFileSymbol(object):

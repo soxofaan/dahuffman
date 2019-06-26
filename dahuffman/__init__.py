@@ -1,1 +1,1 @@
-from .huffmancodec import HuffmanCodec
+from dahuffman.huffmancodec import HuffmanCodec
