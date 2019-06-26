@@ -26,7 +26,7 @@ Features and design
   for example chess moves or sequences of categorical data, as long as these symbols
   can be used as keys in dictionaries (meaning they should be hashable).
 - properly handle end of encoded bit stream if it does not align with byte boundaries
-- supports both Python 2.7 and Python 3.6
+- supports both Python 2.7 and Python 3.5 and up
 
 Installation
 ------------
