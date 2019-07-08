@@ -41,8 +41,15 @@ def test_non_string_symbols(data):
     codec = HuffmanCodec.from_data(data)
     encoded = codec.encode(data)
     assert type(encoded) == type(b'')
-    decoded = codec.decode(encoded, as_list=True)
+    decoded = codec.decode(encoded)
     assert decoded == data
+
+
+def test_decode_concat():
+    codec = HuffmanCodec.from_data([1, 2, 3])
+    encoded = codec.encode([1, 2, 1, 2, 3, 2, 1])
+    decoded = codec.decode(encoded, concat=sum)
+    assert decoded == 12
 
 
 def test_trailing_zero_handling():

@@ -133,15 +133,15 @@ class PrefixCodec(object):
                 byte = buffer << (8 - size)
             yield byte
 
-    def decode(self, data, as_list=False):
+    def decode(self, data, concat=None):
         """
         Decode given data.
 
         :param data: sequence of bytes (string, list or generator of bytes)
-        :param as_list: whether to return as a list instead of
+        :param concat: optional override of function to concatenate the decoded symbols
         :return:
         """
-        return self._concat(self.decode_streaming(data))
+        return (concat or self._concat)(self.decode_streaming(data))
 
     def decode_streaming(self, data):
         """
