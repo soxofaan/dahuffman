@@ -5,9 +5,17 @@ from io import StringIO
 import pytest
 
 from dahuffman import HuffmanCodec
+from dahuffman.huffmancodec import PrefixCodec, _EOF
 
 
 # TODO test streaming
+
+
+def test_prefix_codec():
+    code_table = {'A': (2, 0), 'B': (2, 1), _EOF: (2, 3)}
+    codec = PrefixCodec(code_table, check=True)
+    encoded = codec.encode('ABBA')
+    assert encoded == b'\x14'
 
 
 @pytest.mark.parametrize('data', [

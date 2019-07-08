@@ -1,9 +1,6 @@
 import collections
-import itertools
 import sys
 from heapq import heappush, heappop, heapify
-
-from dahuffman.compat import to_byte, from_byte, concat_bytes
 
 
 class _EndOfFileSymbol(object):
@@ -45,7 +42,7 @@ def _guess_concat(data):
     """
     return {
         type(u''): u''.join,
-        type(b''): concat_bytes,
+        type(b''): bytes,
     }.get(type(data), list)
 
 
@@ -68,7 +65,7 @@ class PrefixCodec(object):
         if check:
             assert isinstance(self._table, dict) and all(
                 isinstance(b, int) and b >= 1 and isinstance(v, int) and v >= 0
-                for (b, v) in self._table.itervalues()
+                for (b, v) in self._table.values()
             )
             # TODO check if code table is actually a prefix code
 
@@ -96,7 +93,7 @@ class PrefixCodec(object):
         :param data: sequence of symbols (e.g. byte string, unicode string, list, iterator)
         :return: byte string
         """
-        return concat_bytes(self.encode_streaming(data))
+        return bytes(self.encode_streaming(data))
 
     def encode_streaming(self, data):
         """
@@ -115,7 +112,7 @@ class PrefixCodec(object):
             size += b
             while size >= 8:
                 byte = buffer >> (size - 8)
-                yield to_byte(byte)
+                yield byte
                 buffer = buffer - (byte << (size - 8))
                 size -= 8
 
@@ -134,7 +131,7 @@ class PrefixCodec(object):
                 byte = buffer >> (size - 8)
             else:
                 byte = buffer << (8 - size)
-            yield to_byte(byte)
+            yield byte
 
     def decode(self, data, as_list=False):
         """
@@ -160,7 +157,7 @@ class PrefixCodec(object):
         size = 0
         for byte in data:
             for m in [128, 64, 32, 16, 8, 4, 2, 1]:
-                buffer = (buffer << 1) + bool(from_byte(byte) & m)
+                buffer = (buffer << 1) + bool(byte & m)
                 size += 1
                 if (size, buffer) in lookup:
                     symbol = lookup[size, buffer]
