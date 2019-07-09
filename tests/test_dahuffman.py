@@ -1,4 +1,5 @@
 # coding=utf-8
+import io
 import re
 from io import StringIO
 
@@ -92,3 +93,10 @@ def test_eof_cut_off():
         encoded = codec.encode(data)
         assert len(encoded) == expected_length
         assert data == codec.decode(encoded)
+
+
+def test_print_code_table():
+    codec = HuffmanCodec.from_data("aaaaa")
+    out = io.StringIO()
+    codec.print_code_table(out=out)
+    assert out.getvalue() == "Bits Code Value Symbol\n   1 0        0 _EOF\n   1 1        1 'a'\n"

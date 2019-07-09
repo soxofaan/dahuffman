@@ -1,4 +1,5 @@
 import collections
+import itertools
 import sys
 from heapq import heappush, heappop, heapify
 
@@ -80,11 +81,20 @@ class PrefixCodec(object):
         """
         Print code table overview
         """
-        out.write(u'bits  code       (value)  symbol\n')
-        for symbol, (bitsize, value) in sorted(self._table.items()):
-            out.write(u'{b:4d}  {c:10} ({v:5d})  {s!r}\n'.format(
-                b=bitsize, v=value, s=symbol, c=bin(value)[2:].rjust(bitsize, '0')
-            ))
+        # TODO: add sort options?
+        # Render table cells as string
+        columns = list(zip(*itertools.chain(
+            [('Bits', 'Code', 'Value', 'Symbol')],
+            (
+                (str(bits), bin(val)[2:].rjust(bits, '0'), str(val), repr(symbol))
+                for symbol, (bits, val) in self._table.items()
+            )
+        )))
+        # Find column widths and build row template
+        widths = tuple(max(len(s) for s in col) for col in columns)
+        template = '{0:>%d} {1:%d} {2:>%d} {3}\n' % widths[:3]
+        for row in zip(*columns):
+            out.write(template.format(*row))
 
     def encode(self, data):
         """
