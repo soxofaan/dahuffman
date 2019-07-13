@@ -108,7 +108,7 @@ def test_eof_cut_off():
 
 def test_save(tmp_path: Path):
     codec1 = HuffmanCodec.from_data('aabcbcdbabdbcbd')
-    path = tmp_path / 'foo' / 'bar.huff'
+    path = str(tmp_path / 'foo' / 'bar.huff')
     codec1.save(path)
     output1 = codec1.encode('abcdabcd')
     codec2 = PrefixCodec.load(path)
