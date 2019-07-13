@@ -107,3 +107,24 @@ Doing it in a streaming fashion (generators)::
 
 
 
+
+Pre-trained codecs
+~~~~~~~~~~~~~~~~~~
+
+The ``dahuffman.codecs`` package contains a bunch of pre-trained code tables.
+The codecs can be loaded as follows::
+
+    >>> from dahuffman import load_shakespeare
+    >>> codec = load_shakespeare()
+    >>> codec.print_code_table()
+    Bits Code                     Value Symbol
+       4 0000                         0 'n'
+       4 0001                         1 's'
+       4 0010                         2 'h'
+       5 00110                        6 'u'
+       7 0011100                     28 'k'
+       9 001110100                  116 'Y'
+      14 00111010100000            3744 '0'
+    ...
+    >>> len(codec.encode('To be, or not to be; that is the question;'))
+    24

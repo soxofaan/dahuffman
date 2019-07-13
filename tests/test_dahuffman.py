@@ -2,6 +2,7 @@
 import io
 import re
 from io import StringIO
+from pathlib import Path
 
 import pytest
 
@@ -75,6 +76,16 @@ def test_print_code_table():
     assert re.search(r"3\s+000\s+.*_EOF", dump)
 
 
+def test_print_code_table2():
+    codec = HuffmanCodec.from_data("aaaaa")
+    out = io.StringIO()
+    codec.print_code_table(out=out)
+    actual = out.getvalue().split('\n')
+    expected = "Bits Code Value Symbol\n   1 0        0 _EOF\n   1 1        1 'a'\n".split('\n')
+    assert actual[0] == expected[0]
+    assert set(actual[1:]) == set(expected[1:])
+
+
 def test_eof_cut_off():
     # Using frequency table that should give this encoding
     # A   -> 0
@@ -95,11 +106,12 @@ def test_eof_cut_off():
         assert data == codec.decode(encoded)
 
 
-def test_print_code_table():
-    codec = HuffmanCodec.from_data("aaaaa")
-    out = io.StringIO()
-    codec.print_code_table(out=out)
-    actual = out.getvalue().split('\n')
-    expected = "Bits Code Value Symbol\n   1 0        0 _EOF\n   1 1        1 'a'\n".split('\n')
-    assert actual[0] == expected[0]
-    assert set(actual[1:]) == set(expected[1:])
+def test_save(tmp_path: Path):
+    codec1 = HuffmanCodec.from_data('aabcbcdbabdbcbd')
+    path = tmp_path / 'foo' / 'bar.huff'
+    codec1.save(path)
+    output1 = codec1.encode('abcdabcd')
+    codec2 = PrefixCodec.load(path)
+    output2 = codec2.encode('abcdabcd')
+    assert output1 == output2
+    assert codec1.decode(output1) == codec2.decode(output2)

@@ -3,6 +3,13 @@ import itertools
 import sys
 from heapq import heappush, heappop, heapify
 
+import logging
+import pickle
+from pathlib import Path
+from typing import Union, Any
+
+_log = logging.getLogger(__name__)
+
 
 class _EndOfFileSymbol(object):
     """
@@ -45,6 +52,14 @@ def _guess_concat(data):
         type(u''): u''.join,
         type(b''): bytes,
     }.get(type(data), list)
+
+
+def ensure_dir(path: Union[str, Path]) -> Path:
+    path = Path(path)
+    if not path.exists():
+        path.mkdir(parents=True)
+    assert path.is_dir()
+    return path
 
 
 class PrefixCodec(object):
@@ -176,6 +191,48 @@ class PrefixCodec(object):
                     yield symbol
                     buffer = 0
                     size = 0
+
+    def save(self, path: Union[str, Path], metadata: Any = None):
+        """
+        Persist the code table to a file.
+        :param path: file path to persist to
+        :param metadata: additional metadata
+        :return:
+        """
+        code_table = self.get_code_table()
+        data = {
+            "code_table": code_table,
+            "type": type(self),
+            "concat": self._concat,
+        }
+        if metadata:
+            data['metadata'] = metadata
+        path = Path(path)
+        ensure_dir(path.parent)
+        with path.open(mode='wb') as f:
+            # TODO also provide JSON option? Requires handling of _EOF and possibly other non-string code table keys.
+            pickle.dump(data, file=f)
+        _log.info('Saved {c} code table ({l} items) to {p!r}'.format(
+            c=type(self).__name__, l=len(code_table), p=str(path)
+        ))
+
+    @staticmethod
+    def load(path: Union[str, Path]) -> 'PrefixCodec':
+        """
+        Load a persisted PrefixCodec
+        :param path: path to serialized PrefixCodec code table data.
+        :return:
+        """
+        path = Path(path)
+        with path.open(mode='rb') as f:
+            data = pickle.load(f)
+        cls = data['type']
+        assert issubclass(cls, PrefixCodec)
+        code_table = data['code_table']
+        _log.info('Loading {c} with {l} code table items from {p!r}'.format(
+            c=cls.__name__, l=len(code_table), p=str(path)
+        ))
+        return cls(code_table, concat=data['concat'])
 
 
 class HuffmanCodec(PrefixCodec):

@@ -4,3 +4,6 @@
 ve
 *.pyc
 venv
+.tox
+dist
+build

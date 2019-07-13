@@ -18,6 +18,7 @@ setup(
     author_email='soxofaan@gmail.com',
     license='MIT',
     packages=['dahuffman'],
+    include_package_data=True,
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
