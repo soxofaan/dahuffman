@@ -1,7 +1,7 @@
 import pytest
 
 from dahuffman import load_json, load_json_compact
-from dahuffman.codecs import get_path, load, load_shakespeare, load_shakespeare_lower
+from dahuffman.codecs import get_path, load, load_shakespeare, load_shakespeare_lower, load_xml
 
 LOREM_IPSUM = '''
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
@@ -55,5 +55,12 @@ def test_json():
 def test_json_compact():
     codec = load_json_compact()
     data = '{"foo":"bar","baz":[1,2,3,4,5,6],"title":"data stuff"}'
+    encoded = codec.encode(data)
+    assert codec.decode(encoded) == data
+
+
+def test_xml():
+    codec = load_xml()
+    data = '<items order="qwux"><item color="red">foo</item></items>'
     encoded = codec.encode(data)
     assert codec.decode(encoded) == data
