@@ -17,6 +17,7 @@ def download(url: str, path: str) -> Path:
         ensure_dir(path.parent)
         _log.info(f'Downloading {url}')
         with requests.get(url) as r:
+            r.raise_for_status()
             with path.open('wb') as f:
                 for chunk in r.iter_content(chunk_size=1024):
                     f.write(chunk)

@@ -19,6 +19,7 @@ def test_get_path():
     'shakespeare',
     'shakespeare-lower',
     'json',
+    'xml',
 ])
 def test_encode_decode(name):
     codec = load(name)

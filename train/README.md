@@ -6,3 +6,5 @@ on publicly available data sets (e.g. English text, JSON files, ...).
 Usage example:
 
     python train/shakespeare.py
+
+Then, copy generated codec files to `dahuffman/codecs`.
