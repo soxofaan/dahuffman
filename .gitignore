@@ -7,3 +7,5 @@ venv
 .tox
 dist
 build
+.ipynb_checkpoints
+
