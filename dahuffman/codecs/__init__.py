@@ -32,3 +32,5 @@ def get_path(name: str) -> Path:
 
 load_shakespeare = partial(load, "shakespeare")
 load_shakespeare_lower = partial(load, "shakespeare-lower")
+load_json = partial(load, "json")
+load_json_compact = partial(load, "json-compact")

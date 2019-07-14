@@ -1,5 +1,6 @@
 import pytest
 
+from dahuffman import load_json, load_json_compact
 from dahuffman.codecs import get_path, load, load_shakespeare, load_shakespeare_lower
 
 LOREM_IPSUM = '''
@@ -17,6 +18,7 @@ def test_get_path():
 @pytest.mark.parametrize('name', [
     'shakespeare',
     'shakespeare-lower',
+    'json',
 ])
 def test_encode_decode(name):
     codec = load(name)
@@ -40,3 +42,17 @@ def test_shakespeare_lower():
         codec.encode(LOREM_IPSUM)
     encoded = codec.encode(LOREM_IPSUM.lower())
     assert codec.decode(encoded) == LOREM_IPSUM.lower()
+
+
+def test_json():
+    codec = load_json()
+    data = '{"foo":"bar","baz":[1,2,3,4,5,6],"title":"data stuff"}'
+    encoded = codec.encode(data)
+    assert codec.decode(encoded) == data
+
+
+def test_json_compact():
+    codec = load_json_compact()
+    data = '{"foo":"bar","baz":[1,2,3,4,5,6],"title":"data stuff"}'
+    encoded = codec.encode(data)
+    assert codec.decode(encoded) == data
