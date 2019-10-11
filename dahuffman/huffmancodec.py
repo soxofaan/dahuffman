@@ -176,7 +176,7 @@ class PrefixCodec:
         :return: generator of symbols
         """
         # Reverse lookup table: map (bitsize, value) to symbols
-        lookup = dict(((b, v), s) for (s, (b, v)) in self._table.items())
+        lookup = {(b, v): s for s, (b, v) in self._table.items()}
 
         buffer = 0
         size = 0
