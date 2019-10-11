@@ -11,7 +11,7 @@ from typing import Union, Any
 _log = logging.getLogger(__name__)
 
 
-class _EndOfFileSymbol(object):
+class _EndOfFileSymbol:
     """
     Internal class for "end of file" symbol to be able
     to detect the end of the encoded bit stream,
@@ -62,7 +62,7 @@ def ensure_dir(path: Union[str, Path]) -> Path:
     return path
 
 
-class PrefixCodec(object):
+class PrefixCodec:
     """
     Prefix code codec, using given code table.
     """
