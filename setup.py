@@ -10,7 +10,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='dahuffman',
-    version='0.4.0',
+    version='0.4.1-alpha',
     description='Pure Python Huffman encoder and decoder module',
     long_description=long_description,
     url='https://github.com/soxofaan/dahuffman',
