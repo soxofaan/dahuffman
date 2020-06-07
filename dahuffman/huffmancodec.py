@@ -133,6 +133,7 @@ class PrefixCodec:
         buffer = 0
         size = 0
         for s in data:
+            # TODO: raise custom EncodeException instead of KeyError?
             b, v = self._table[s]
             # Shift new bits in the buffer
             buffer = (buffer << b) + v
