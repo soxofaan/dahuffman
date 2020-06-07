@@ -8,6 +8,9 @@ dahuffman - Python Module for Huffman Encoding and Decoding
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg
     :target: https://raw.githubusercontent.com/soxofaan/dahuffman/master/LICENSE.txt
 
+.. image::  https://img.shields.io/pypi/v/dahuffman
+    :target: https://pypi.org/project/dahuffman
+
 
 -------------------------
 
