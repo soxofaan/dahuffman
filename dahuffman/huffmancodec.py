@@ -67,17 +67,19 @@ class PrefixCodec:
     Prefix code codec, using given code table.
     """
 
-    def __init__(self, code_table, concat=list, check=True):
+    def __init__(self, code_table, concat=list, check=True, eof=_EOF):
         """
         Initialize codec with given code table.
 
         :param code_table: mapping of symbol to code tuple (bitsize, value)
         :param concat: function to concatenate symbols
         :param check: whether to check the code table
+        :param eof: "end of file" symbol (customizable for advanced usage)
         """
         # Code table is dictionary mapping symbol to (bitsize, value)
         self._table = code_table
         self._concat = concat
+        self._eof = eof
         if check:
             assert isinstance(self._table, dict) and all(
                 isinstance(b, int) and b >= 1 and isinstance(v, int) and v >= 0
@@ -149,7 +151,7 @@ class PrefixCodec:
         # the end of the current byte and cut off there.
         # No new byte has to be started for the remainder, saving us one (or more) output bytes.
         if size > 0:
-            b, v = self._table[_EOF]
+            b, v = self._table[self._eof]
             buffer = (buffer << b) + v
             size += b
             if size >= 8:
@@ -186,7 +188,7 @@ class PrefixCodec:
                 size += 1
                 if (size, buffer) in lookup:
                     symbol = lookup[size, buffer]
-                    if symbol == _EOF:
+                    if symbol == self._eof:
                         return
                     yield symbol
                     buffer = 0
@@ -242,19 +244,20 @@ class HuffmanCodec(PrefixCodec):
     """
 
     @classmethod
-    def from_frequencies(cls, frequencies, concat=None):
+    def from_frequencies(cls, frequencies, concat=None, eof=_EOF):
         """
         Build Huffman code table from given symbol frequencies
         :param frequencies: symbol to frequency mapping
         :param concat: function to concatenate symbols
+        :param eof: "end of file" symbol (customizable for advanced usage)
         """
         concat = concat or _guess_concat(next(iter(frequencies)))
 
         # Heap consists of tuples: (frequency, [list of tuples: (symbol, (bitsize, value))])
         heap = [(f, [(s, (0, 0))]) for s, f in frequencies.items()]
         # Add EOF symbol.
-        # TODO: argument to set frequency of EOF?
-        heap.append((1, [(_EOF, (0, 0))]))
+        if eof not in frequencies:
+            heap.append((1, [(eof, (0, 0))]))
 
         # Use heapq approach to build the encodings of the huffman tree leaves.
         heapify(heap)
@@ -273,7 +276,7 @@ class HuffmanCodec(PrefixCodec):
         # Code table is dictionary mapping symbol to (bitsize, value)
         table = dict(heappop(heap)[1])
 
-        return cls(table, concat=concat, check=False)
+        return cls(table, concat=concat, check=False, eof=eof)
 
     @classmethod
     def from_data(cls, data):

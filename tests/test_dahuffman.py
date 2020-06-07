@@ -115,3 +115,15 @@ def test_save(tmp_path: Path):
     output2 = codec2.encode('abcdabcd')
     assert output1 == output2
     assert codec1.decode(output1) == codec2.decode(output2)
+
+
+def test_custom_eof():
+    codec = HuffmanCodec.from_frequencies({'A': 5, 'B': 3, 'C': 2}, eof="Z")
+    encoded = codec.encode("ABCACBZABAB")
+    assert codec.decode(encoded) == "ABCACB"
+
+
+def test_custom_eof_in_frequencies():
+    codec = HuffmanCodec.from_frequencies({'A': 5, 'B': 3, 'C': 2, 'Z': 8}, eof="Z")
+    encoded = codec.encode("ABCACBZABAB")
+    assert codec.decode(encoded) == "ABCACB"
