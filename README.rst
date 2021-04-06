@@ -45,6 +45,17 @@ Basic usage example, where the code table is built based on given symbol frequen
 
     >>> from dahuffman import HuffmanCodec
     >>> codec = HuffmanCodec.from_frequencies({'e': 100, 'n':20, 'x':1, 'i': 40, 'q':3})
+    >>> codec.print_code_table()
+    Bits Code  Value Symbol
+       5 00000     0 _EOF
+       5 00001     1 'x'
+       4 0001      1 'q'
+       3 001       1 'n'
+       2 01        1 'i'
+       1 1         1 'e'
+
+Encode a string, get the encoded data as ``bytes`` and decode again::
+
     >>> encoded = codec.encode('exeneeeexniqneieini')
     >>> encoded
     b'\x86|%\x13i@'
@@ -52,14 +63,13 @@ Basic usage example, where the code table is built based on given symbol frequen
     6
     >>> codec.decode(encoded)
     'exeneeeexniqneieini'
-    >>> codec.print_code_table()
-    bits  code       (value)  symbol
-       5  00000      (    0)  _EOF
-       1  1          (    1)  'e'
-       2  01         (    1)  'i'
-       3  001        (    1)  'n'
-       4  0001       (    1)  'q'
-       5  00001      (    1)  'x'
+
+If desired: work with byte values directly:
+
+    >>> list(encoded)
+    [134, 124, 37, 19, 105, 64]
+    >>> codec.decode([134, 124, 37, 19, 105, 64])
+    'exeneeeexniqneieini'
 
 
 You can also "train" the codec by providing it data directly::

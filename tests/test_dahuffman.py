@@ -34,6 +34,12 @@ def test_string_data(data):
     assert decoded == data
 
 
+def test_decode_int_list():
+    codec = HuffmanCodec.from_frequencies({'e': 100, 'n':20, 'x':1, 'i': 40, 'q':3})
+    decoded = codec.decode([134, 124, 37, 19, 105, 64])
+    assert decoded == 'exeneeeexniqneieini'
+
+
 @pytest.mark.parametrize('data', [
     [(1, 1), (2, 1), (1, 1), ],
     ['apple', 'pear', 'orange', 'apple', 'lemon', 'pear'],
