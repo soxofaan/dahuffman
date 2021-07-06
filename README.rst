@@ -2,8 +2,8 @@ dahuffman - Python Module for Huffman Encoding and Decoding
 ===========================================================
 
 
-.. image:: https://img.shields.io/travis/soxofaan/dahuffman/master.svg
-    :target: https://travis-ci.org/soxofaan/dahuffman
+.. image:: https://img.shields.io/github/workflow/status/soxofaan/dahuffman/Lint%20and%20Test
+    :target: https://github.com/soxofaan/dahuffman/actions/workflows/lint-and-test.yml
 
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg
     :target: https://raw.githubusercontent.com/soxofaan/dahuffman/master/LICENSE.txt
