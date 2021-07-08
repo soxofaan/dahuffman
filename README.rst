@@ -6,13 +6,13 @@ dahuffman - Python Module for Huffman Encoding and Decoding
     :target: https://github.com/soxofaan/dahuffman/actions/workflows/lint-and-test.yml
 
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg
-    :target: https://raw.githubusercontent.com/soxofaan/dahuffman/master/LICENSE.txt
+    :target: https://github.com/soxofaan/dahuffman/blob/master/LICENSE.txt
 
 .. image::  https://img.shields.io/pypi/v/dahuffman
     :target: https://pypi.org/project/dahuffman
 
 .. image:: https://img.shields.io/pypi/pyversions/dahuffman
-    :alt: PyPI - Python Version
+    :target: https://pypi.org/project/dahuffman
 
 .. image:: https://img.shields.io/pypi/wheel/dahuffman
     :target: https://pypi.org/project/dahuffman
