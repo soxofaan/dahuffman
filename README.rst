@@ -11,6 +11,12 @@ dahuffman - Python Module for Huffman Encoding and Decoding
 .. image::  https://img.shields.io/pypi/v/dahuffman
     :target: https://pypi.org/project/dahuffman
 
+.. image:: https://img.shields.io/pypi/pyversions/dahuffman
+    :alt: PyPI - Python Version
+
+.. image:: https://img.shields.io/pypi/wheel/dahuffman
+    :target: https://pypi.org/project/dahuffman
+    :alt: PyPI - Wheel
 
 -------------------------
 
