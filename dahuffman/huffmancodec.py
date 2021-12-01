@@ -1,14 +1,22 @@
 import collections
 import itertools
+from io import IOBase
 import sys
 from heapq import heappush, heappop, heapify
 
 import logging
 import pickle
 from pathlib import Path
-from typing import Union, Any
+from typing import (Any, Callable, Dict, Iterator, List, Optional, Tuple, Type, Union, Mapping, Iterable)
 
 _log = logging.getLogger(__name__)
+
+
+SymElementT = Union[str, int, bytes]
+SymT = Union[Tuple[SymElementT, ...], SymElementT, "_EndOfFileSymbol"]
+CodeT = Tuple[int, ...]
+CodeTableT = Dict[SymT, CodeT]
+SymTSeq = Iterable[SymT]
 
 
 class _EndOfFileSymbol:
@@ -18,22 +26,22 @@ class _EndOfFileSymbol:
     which does not necessarily align with byte boundaries.
     """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '_EOF'
 
     # Because _EOF will be compared with normal symbols (strings, bytes),
     # we have to provide a minimal set of comparison methods.
     # We'll make _EOF smaller than the rest (meaning lowest frequency)
-    def __lt__(self, other):
+    def __lt__(self, other: SymT) -> bool:
         return True
 
-    def __gt__(self, other):
+    def __gt__(self, other: SymT) -> bool:
         return False
 
-    def __eq__(self, other):
+    def __eq__(self, other: SymT) -> bool:
         return other.__class__ == self.__class__
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.__class__)
 
 
@@ -44,7 +52,7 @@ _EOF = _EndOfFileSymbol()
 # TODO store/load code table from file
 # TODO Directly encode to and decode from file
 
-def _guess_concat(data):
+def _guess_concat(data: Any) -> Union[Type[bytes], Type[list], Callable]:
     """
     Guess concat function from given data
     """
@@ -67,7 +75,7 @@ class PrefixCodec:
     Prefix code codec, using given code table.
     """
 
-    def __init__(self, code_table, concat=list, check=True, eof=_EOF):
+    def __init__(self, code_table: CodeTableT, concat: Callable = list, check: bool = True, eof: SymT = _EOF) -> None:
         """
         Initialize codec with given code table.
 
@@ -87,14 +95,14 @@ class PrefixCodec:
             )
             # TODO check if code table is actually a prefix code
 
-    def get_code_table(self):
+    def get_code_table(self) -> CodeTableT:
         """
         Get code table
         :return: dictionary mapping symbol to code tuple (bitsize, value)
         """
         return self._table
 
-    def print_code_table(self, out=sys.stdout):
+    def print_code_table(self, out: IOBase = sys.stdout) -> None:
         """
         Print code table overview
         """
@@ -113,7 +121,7 @@ class PrefixCodec:
         for row in zip(*columns):
             out.write(template.format(*row))
 
-    def encode(self, data):
+    def encode(self, data: Any) -> bytes:
         """
         Encode given data.
 
@@ -122,7 +130,7 @@ class PrefixCodec:
         """
         return bytes(self.encode_streaming(data))
 
-    def encode_streaming(self, data):
+    def encode_streaming(self, data: Any) -> Iterator[int]:
         """
         Encode given data in streaming fashion.
 
@@ -161,7 +169,7 @@ class PrefixCodec:
                 byte = buffer << (8 - size)
             yield byte
 
-    def decode(self, data, concat=None):
+    def decode(self, data: Iterable[int], concat: Optional[Callable] = None) -> Any:
         """
         Decode given data.
 
@@ -171,7 +179,7 @@ class PrefixCodec:
         """
         return (concat or self._concat)(self.decode_streaming(data))
 
-    def decode_streaming(self, data):
+    def decode_streaming(self, data: Iterable[int]) -> Iterator[SymT]:
         """
         Decode given data in streaming fashion
 
@@ -195,7 +203,7 @@ class PrefixCodec:
                     buffer = 0
                     size = 0
 
-    def save(self, path: Union[str, Path], metadata: Any = None):
+    def save(self, path: Union[str, Path], metadata: Any = None) -> None:
         """
         Persist the code table to a file.
         :param path: file path to persist to
@@ -220,7 +228,7 @@ class PrefixCodec:
         ))
 
     @staticmethod
-    def load(path: Union[str, Path]) -> 'PrefixCodec':
+    def load(path: Union[str, Path]) -> "PrefixCodec":
         """
         Load a persisted PrefixCodec
         :param path: path to serialized PrefixCodec code table data.
@@ -245,7 +253,7 @@ class HuffmanCodec(PrefixCodec):
     """
 
     @classmethod
-    def from_frequencies(cls, frequencies, concat=None, eof=_EOF):
+    def from_frequencies(cls, frequencies: Union[collections.Counter, Mapping[SymT, int]], concat: Optional[Callable] = None, eof: SymT = _EOF) -> "HuffmanCodec":
         """
         Build Huffman code table from given symbol frequencies
         :param frequencies: symbol to frequency mapping
@@ -280,7 +288,7 @@ class HuffmanCodec(PrefixCodec):
         return cls(table, concat=concat, check=False, eof=eof)
 
     @classmethod
-    def from_data(cls, data):
+    def from_data(cls, data: Any) -> "HuffmanCodec":
         """
         Build Huffman code table from symbol sequence
 
