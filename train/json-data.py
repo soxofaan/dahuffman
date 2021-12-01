@@ -1,10 +1,15 @@
 import hashlib
-import json
 import logging
 from collections import Counter
 
 from dahuffman import HuffmanCodec
 from train.train_utils import download, CODECS
+
+
+try:
+    import mujson as json
+except ImportError:
+    import json
 
 _log = logging.getLogger()
 
