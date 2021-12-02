@@ -1,16 +1,48 @@
 # coding=utf-8
 import io
 import re
+import textwrap
 from io import StringIO
 from pathlib import Path
 
 import pytest
 
 from dahuffman import HuffmanCodec
-from dahuffman.huffmancodec import PrefixCodec, _EOF
+from dahuffman.huffmancodec import PrefixCodec, _EOF, CodeTable
 
 
 # TODO test streaming
+
+
+class TestCodeTable:
+    def test_basic(self):
+        table = CodeTable({"a": (1, 0), "b": (1, 1)})
+        assert table.get_code("a") == (1, 0)
+        assert table.get_code("b") == (1, 1)
+        assert table.get_symbol(1, 0) == "a"
+        assert table.get_symbol(1, 1) == "b"
+        assert len(table) == 2
+
+    @pytest.mark.parametrize("codes", [
+        {"a": (0, 0), "b": (1, 1)},
+        {"a": (1, 0), "b": (1, -1)},
+        {"a": (1, 2), "b": (1, 1)},
+    ])
+    def test_invalid(self, codes):
+        with pytest.raises(ValueError):
+            CodeTable(codes)
+
+    def test_print(self):
+        table = CodeTable({"a": (2, 0), "b": (3, 7)})
+        out = StringIO()
+        table.print(out)
+        assert out.getvalue() == textwrap.dedent(
+            """\
+            Bits Code Value Symbol
+               2 00       0 'a'
+               3 111      7 'b'
+            """
+        )
 
 
 def test_prefix_codec():

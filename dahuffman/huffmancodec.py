@@ -1,5 +1,6 @@
 import collections
 import itertools
+import math
 from io import IOBase
 import sys
 from heapq import heappush, heappop, heapify
@@ -67,20 +68,30 @@ def ensure_dir(path: Union[str, Path]) -> Path:
 
 class CodeTable:
     """
-    Code table: mapping a symbol to codes (and vice versa).
+    Code table: mapping a symbol to codewords (and vice versa).
 
     The symbols are the things you want to encode, usually characters in a string
     or byte sequence, but it can be anything hashable.
-    The codes are the corresponding bit sequences, represented as a tuple (bits, value)
+    The codewords are the corresponding bit sequences, represented as a tuple (bits, value)
     where `bits` is the number of bits and `value` the integer interpretation of these bits.
     """
+
+    # TODO: use something like namedtuple or class with slots for codewords instead of tuples?
 
     def __init__(self, symbol_code_map: dict):
         self._symbol_map = {}
         self._code_map = {}
         for symbol, (bits, value) in symbol_code_map.items():
-            assert isinstance(bits, int) and bits >= 1, f"Invalid bit count {bits}"
-            assert isinstance(value, int) and value >= 0, f"Invalid code value {value}"
+            if not (
+                isinstance(bits, int)
+                and bits >= 1
+                and isinstance(value, int)
+                and value >= 0
+                and math.log2(max(value, 1)) < bits
+            ):
+                raise ValueError(
+                    "Invalid code: {b} bits, value {v}".format(b=bits, v=value)
+                )
             self._symbol_map[symbol] = (bits, value)
             self._code_map[(bits, value)] = symbol
         # TODO check if code table is actually a prefix code
