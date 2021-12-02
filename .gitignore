@@ -1,9 +1,9 @@
 .cache
 .idea
 *.egg-info
-ve
 *.pyc
-venv
+ve
+venv*
 .tox
 dist
 build
