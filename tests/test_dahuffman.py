@@ -14,10 +14,10 @@ from dahuffman.huffmancodec import PrefixCodec, _EOF
 
 
 def test_prefix_codec():
-    code_table = {'A': (2, 0), 'B': (2, 1), _EOF: (2, 3)}
+    code_table = {"A": (2, 0), "B": (2, 1), _EOF: (2, 3)}
     codec = PrefixCodec(code_table, check=True)
-    encoded = codec.encode('ABBA')
-    assert encoded == b'\x14'
+    encoded = codec.encode("ABBA")
+    assert encoded == b"\x14"
 
 
 @pytest.mark.parametrize('data', [
@@ -28,16 +28,16 @@ def test_prefix_codec():
 def test_string_data(data):
     codec = HuffmanCodec.from_data(data)
     encoded = codec.encode(data)
-    assert type(encoded) == type(b'')
+    assert type(encoded) == type(b"")
     assert len(encoded) < len(data)
     decoded = codec.decode(encoded)
     assert decoded == data
 
 
 def test_decode_int_list():
-    codec = HuffmanCodec.from_frequencies({'e': 100, 'n':20, 'x':1, 'i': 40, 'q':3})
+    codec = HuffmanCodec.from_frequencies({"e": 100, "n": 20, "x": 1, "i": 40, "q": 3})
     decoded = codec.decode([134, 124, 37, 19, 105, 64])
-    assert decoded == 'exeneeeexniqneieini'
+    assert decoded == "exeneeeexniqneieini"
 
 
 @pytest.mark.parametrize('data', [
@@ -66,13 +66,13 @@ def test_trailing_zero_handling():
     so 'abba' would be 4 bits '0110', trailed with zeros to fill a byte: '0110000', which is indiscernible
     from result of input 'abbaaaaa'. With proper end-of-file handling, trailing bits are ignored properly.
     """
-    codec = HuffmanCodec.from_frequencies({'a': 1, 'b': 1})
-    decoded = codec.decode(codec.encode('abba'))
-    assert decoded == 'abba'
+    codec = HuffmanCodec.from_frequencies({"a": 1, "b": 1})
+    decoded = codec.decode(codec.encode("abba"))
+    assert decoded == "abba"
 
 
 def test_print_code_table():
-    codec = HuffmanCodec.from_frequencies({'a': 2, 'b': 4, 'c': 8})
+    codec = HuffmanCodec.from_frequencies({"a": 2, "b": 4, "c": 8})
     out = StringIO()
     codec.print_code_table(out=out)
     dump = out.getvalue()
@@ -86,7 +86,7 @@ def test_print_code_table2():
     codec = HuffmanCodec.from_data("aaaaa")
     out = io.StringIO()
     codec.print_code_table(out=out)
-    actual = out.getvalue().split('\n')
+    actual = out.getvalue().split("\n")
     expected = "Bits Code Value Symbol\n   1 0        0 _EOF\n   1 1        1 'a'\n".split('\n')
     assert actual[0] == expected[0]
     assert set(actual[1:]) == set(expected[1:])
@@ -113,23 +113,23 @@ def test_eof_cut_off():
 
 
 def test_save(tmp_path: Path):
-    codec1 = HuffmanCodec.from_data('aabcbcdbabdbcbd')
-    path = str(tmp_path / 'foo' / 'bar.huff')
+    codec1 = HuffmanCodec.from_data("aabcbcdbabdbcbd")
+    path = str(tmp_path / "foo" / "bar.huff")
     codec1.save(path)
-    output1 = codec1.encode('abcdabcd')
+    output1 = codec1.encode("abcdabcd")
     codec2 = PrefixCodec.load(path)
-    output2 = codec2.encode('abcdabcd')
+    output2 = codec2.encode("abcdabcd")
     assert output1 == output2
     assert codec1.decode(output1) == codec2.decode(output2)
 
 
 def test_custom_eof():
-    codec = HuffmanCodec.from_frequencies({'A': 5, 'B': 3, 'C': 2}, eof="Z")
+    codec = HuffmanCodec.from_frequencies({"A": 5, "B": 3, "C": 2}, eof="Z")
     encoded = codec.encode("ABCACBZABAB")
     assert codec.decode(encoded) == "ABCACB"
 
 
 def test_custom_eof_in_frequencies():
-    codec = HuffmanCodec.from_frequencies({'A': 5, 'B': 3, 'C': 2, 'Z': 8}, eof="Z")
+    codec = HuffmanCodec.from_frequencies({"A": 5, "B": 3, "C": 2, "Z": 8}, eof="Z")
     encoded = codec.encode("ABCACBZABAB")
     assert codec.decode(encoded) == "ABCACB"

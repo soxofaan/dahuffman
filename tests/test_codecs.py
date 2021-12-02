@@ -3,16 +3,16 @@ import pytest
 from dahuffman import load_json, load_json_compact
 from dahuffman.codecs import get_path, load, load_shakespeare, load_shakespeare_lower, load_xml
 
-LOREM_IPSUM = '''
+LOREM_IPSUM = """
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
     sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
     Dolor sed viverra ipsum nunc aliquet bibendum enim. In massa tempor
     nec feugiat. Nunc aliquet bibendum enim facilisis gravida.
-'''
+"""
 
 
 def test_get_path():
-    assert get_path('shakespeare') == get_path('shakespeare.pickle')
+    assert get_path("shakespeare") == get_path("shakespeare.pickle")
 
 
 @pytest.mark.parametrize('name', [

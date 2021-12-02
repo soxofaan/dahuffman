@@ -7,7 +7,7 @@ from heapq import heappush, heappop, heapify
 import logging
 import pickle
 from pathlib import Path
-from typing import Union, Any, Callable, Iterator,  Optional, Mapping, Iterable
+from typing import Union, Any, Callable, Iterator, Optional, Mapping, Iterable
 
 _log = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class _EndOfFileSymbol:
     """
 
     def __repr__(self) -> str:
-        return '_EOF'
+        return "_EOF"
 
     # Because _EOF will be compared with normal symbols (strings, bytes),
     # we have to provide a minimal set of comparison methods.
@@ -45,13 +45,14 @@ _EOF = _EndOfFileSymbol()
 # TODO store/load code table from file
 # TODO Directly encode to and decode from file
 
+
 def _guess_concat(data: Any) -> Callable:
     """
     Guess concat function from given data
     """
     return {
-        type(u''): u''.join,
-        type(b''): bytes,
+        type(u""): u"".join,
+        type(b""): bytes,
     }.get(type(data), list)
 
 
@@ -68,7 +69,9 @@ class PrefixCodec:
     Prefix code codec, using given code table.
     """
 
-    def __init__(self, code_table: dict, concat: Callable = list, check: bool = True, eof=_EOF):
+    def __init__(
+        self, code_table: dict, concat: Callable = list, check: bool = True, eof=_EOF
+    ):
         """
         Initialize codec with given code table.
 
@@ -110,7 +113,7 @@ class PrefixCodec:
         )))
         # Find column widths and build row template
         widths = tuple(max(len(s) for s in col) for col in columns)
-        template = '{0:>%d} {1:%d} {2:>%d} {3}\n' % widths[:3]
+        template = "{0:>%d} {1:%d} {2:>%d} {3}\n" % widths[:3]
         for row in zip(*columns):
             out.write(template.format(*row))
 
@@ -163,7 +166,7 @@ class PrefixCodec:
             yield byte
 
     def decode(
-            self, data: Union[bytes, Iterable[int]], concat: Optional[Callable] = None
+        self, data: Union[bytes, Iterable[int]], concat: Optional[Callable] = None
     ) -> Union[str, bytes, Iterable]:
         """
         Decode given data.
@@ -212,10 +215,10 @@ class PrefixCodec:
             "concat": self._concat,
         }
         if metadata:
-            data['metadata'] = metadata
+            data["metadata"] = metadata
         path = Path(path)
         ensure_dir(path.parent)
-        with path.open(mode='wb') as f:
+        with path.open(mode="wb") as f:
             # TODO also provide JSON option? Requires handling of _EOF and possibly other non-string code table keys.
             pickle.dump(data, file=f)
         _log.info('Saved {c} code table ({l} items) to {p!r}'.format(
@@ -230,15 +233,15 @@ class PrefixCodec:
         :return:
         """
         path = Path(path)
-        with path.open(mode='rb') as f:
+        with path.open(mode="rb") as f:
             data = pickle.load(f)
-        cls = data['type']
+        cls = data["type"]
         assert issubclass(cls, PrefixCodec)
-        code_table = data['code_table']
+        code_table = data["code_table"]
         _log.info('Loading {c} with {l} code table items from {p!r}'.format(
             c=cls.__name__, l=len(code_table), p=str(path)
         ))
-        return cls(code_table, concat=data['concat'])
+        return cls(code_table, concat=data["concat"])
 
 
 class HuffmanCodec(PrefixCodec):
@@ -249,7 +252,10 @@ class HuffmanCodec(PrefixCodec):
 
     @classmethod
     def from_frequencies(
-            cls, frequencies: Union[dict, Mapping], concat: Optional[Callable] = None, eof=_EOF
+        cls,
+        frequencies: Union[dict, Mapping],
+        concat: Optional[Callable] = None,
+        eof=_EOF,
     ) -> "HuffmanCodec":
         """
         Build Huffman code table from given symbol frequencies

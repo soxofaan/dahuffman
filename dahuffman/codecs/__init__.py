@@ -24,9 +24,9 @@ def load(name: str) -> PrefixCodec:
 
 
 def get_path(name: str) -> Path:
-    if not name.endswith('.pickle'):
-        name = name + '.pickle'
-    path = pkg_resources.resource_filename('dahuffman', 'codecs/' + name)
+    if not name.endswith(".pickle"):
+        name = name + ".pickle"
+    path = pkg_resources.resource_filename("dahuffman", "codecs/" + name)
     return Path(path)
 
 
