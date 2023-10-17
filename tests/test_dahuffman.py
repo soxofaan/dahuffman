@@ -7,8 +7,7 @@ from pathlib import Path
 import pytest
 
 from dahuffman import HuffmanCodec
-from dahuffman.huffmancodec import PrefixCodec, _EOF
-
+from dahuffman.huffmancodec import _EOF, PrefixCodec
 
 # TODO test streaming
 

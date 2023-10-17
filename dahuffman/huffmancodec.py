@@ -1,13 +1,12 @@
 import collections
 import itertools
-from io import IOBase
-import sys
-from heapq import heappush, heappop, heapify
-
 import logging
 import pickle
+import sys
+from heapq import heapify, heappop, heappush
+from io import IOBase
 from pathlib import Path
-from typing import Union, Any, Callable, Iterator, Optional, Mapping, Iterable
+from typing import Any, Callable, Iterable, Iterator, Mapping, Optional, Union
 
 _log = logging.getLogger(__name__)
 
