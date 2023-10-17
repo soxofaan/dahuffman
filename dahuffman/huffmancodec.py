@@ -1,5 +1,6 @@
 import collections
 import itertools
+import math
 from io import IOBase
 import sys
 from heapq import heappush, heappop, heapify
@@ -7,7 +8,7 @@ from heapq import heappush, heappop, heapify
 import logging
 import pickle
 from pathlib import Path
-from typing import Union, Any, Callable, Iterator, Optional, Mapping, Iterable
+from typing import Union, Any, Callable, Iterator, Optional, Mapping, Iterable, Tuple
 
 _log = logging.getLogger(__name__)
 
@@ -64,41 +65,54 @@ def ensure_dir(path: Union[str, Path]) -> Path:
     return path
 
 
-class PrefixCodec:
+class CodeTable:
     """
-    Prefix code codec, using given code table.
+    Code table: mapping a symbol to codewords (and vice versa).
+
+    The symbols are the things you want to encode, usually characters in a string
+    or byte sequence, but it can be anything hashable.
+    The codewords are the corresponding bit sequences, represented as a tuple (bits, value)
+    where `bits` is the number of bits and `value` the integer interpretation of these bits.
     """
 
-    def __init__(
-        self, code_table: dict, concat: Callable = list, check: bool = True, eof=_EOF
-    ):
-        """
-        Initialize codec with given code table.
+    # TODO: use something like namedtuple or class with slots for codewords instead of tuples?
 
-        :param code_table: mapping of symbol to code tuple (bitsize, value)
-        :param concat: function to concatenate symbols
-        :param check: whether to check the code table
-        :param eof: "end of file" symbol (customizable for advanced usage)
-        """
-        # Code table is dictionary mapping symbol to (bitsize, value)
-        self._table = code_table
-        self._concat = concat
-        self._eof = eof
-        if check:
-            assert isinstance(self._table, dict) and all(
-                isinstance(b, int) and b >= 1 and isinstance(v, int) and v >= 0
-                for (b, v) in self._table.values()
-            )
-            # TODO check if code table is actually a prefix code
+    def __init__(self, symbol_code_map: dict):
+        self._symbol_map = {}
+        self._code_map = {}
+        for symbol, (bits, value) in symbol_code_map.items():
+            if not (
+                isinstance(bits, int)
+                and bits >= 1
+                and isinstance(value, int)
+                and value >= 0
+                and math.log2(max(value, 1)) < bits
+            ):
+                raise ValueError(
+                    "Invalid code: {b} bits, value {v}".format(b=bits, v=value)
+                )
+            self._symbol_map[symbol] = (bits, value)
+            self._code_map[(bits, value)] = symbol
+        # TODO check if code table is actually a prefix code
 
-    def get_code_table(self) -> dict:
-        """
-        Get code table
-        :return: dictionary mapping symbol to code tuple (bitsize, value)
-        """
-        return self._table
+    def __len__(self) -> int:
+        return len(self._symbol_map)
 
-    def print_code_table(self, out: IOBase = sys.stdout) -> None:
+    def get_code(self, symbol: Any) -> Tuple[int, int]:
+        """Get code for given symbol (encode)."""
+        # TODO: raise custom EncodeException instead of KeyError?
+        return self._symbol_map[symbol]
+
+    def has_code(self, bits: int, value: int) -> bool:
+        """Check if code is valid or defined in code table."""
+        return (bits, value) in self._code_map
+
+    def get_symbol(self, bits: int, value: int) -> Any:
+        """Get symbol for given code (decode)"""
+        # TODO: raise custom DecodeException instead of KeyError?
+        return self._code_map[(bits, value)]
+
+    def print(self, out: IOBase = sys.stdout) -> None:
         """
         Print code table overview
         """
@@ -108,14 +122,50 @@ class PrefixCodec:
             [('Bits', 'Code', 'Value', 'Symbol')],
             (
                 (str(bits), bin(val)[2:].rjust(bits, '0'), str(val), repr(symbol))
-                for symbol, (bits, val) in self._table.items()
+                for symbol, (bits, val) in self._symbol_map.items()
             )
         )))
         # Find column widths and build row template
         widths = tuple(max(len(s) for s in col) for col in columns)
-        template = "{0:>%d} {1:%d} {2:>%d} {3}\n" % widths[:3]
+        template = '{0:>%d} {1:%d} {2:>%d} {3}\n' % widths[:3]
         for row in zip(*columns):
             out.write(template.format(*row))
+
+
+class PrefixCodec:
+    """
+    Prefix code codec, using given code table.
+    """
+
+    def __init__(
+        self, code_table: Union[CodeTable, dict], concat: Callable = list, eof=_EOF
+    ):
+        """
+        Initialize codec with given code table.
+
+        :param code_table: mapping between symbols and bit codes
+        :param concat: function to concatenate symbols
+        :param eof: "end of file" symbol (customizable for advanced usage)
+        """
+        # Code table is dictionary mapping symbol to (bitsize, value)
+        self._table = (
+            code_table if isinstance(code_table, CodeTable) else CodeTable(code_table)
+        )
+        self._concat = concat
+        self._eof = eof
+
+    def get_code_table(self) -> CodeTable:
+        """
+        Get code table
+        :return: `CodeTable` object
+        """
+        return self._table
+
+    def print_code_table(self, out: IOBase = sys.stdout) -> None:
+        """
+        Print code table overview
+        """
+        return self._table.print(out=out)
 
     def encode(self, data: Union[str, bytes, Iterable]) -> bytes:
         """
@@ -137,8 +187,7 @@ class PrefixCodec:
         buffer = 0
         size = 0
         for s in data:
-            # TODO: raise custom EncodeException instead of KeyError?
-            b, v = self._table[s]
+            b, v = self._table.get_code(s)
             # Shift new bits in the buffer
             buffer = (buffer << b) + v
             size += b
@@ -156,7 +205,7 @@ class PrefixCodec:
         # the end of the current byte and cut off there.
         # No new byte has to be started for the remainder, saving us one (or more) output bytes.
         if size > 0:
-            b, v = self._table[self._eof]
+            b, v = self._table.get_code(self._eof)
             buffer = (buffer << b) + v
             size += b
             if size >= 8:
@@ -184,8 +233,6 @@ class PrefixCodec:
         :param data: sequence of bytes (string, list or generator of bytes)
         :return: generator of symbols
         """
-        # Reverse lookup table: map (bitsize, value) to symbols
-        lookup = {(b, v): s for s, (b, v) in self._table.items()}
 
         buffer = 0
         size = 0
@@ -193,8 +240,8 @@ class PrefixCodec:
             for m in [128, 64, 32, 16, 8, 4, 2, 1]:
                 buffer = (buffer << 1) + bool(byte & m)
                 size += 1
-                if (size, buffer) in lookup:
-                    symbol = lookup[size, buffer]
+                if self._table.has_code(bits=size, value=buffer):
+                    symbol = self._table.get_symbol(size, buffer)
                     if symbol == self._eof:
                         return
                     yield symbol
@@ -286,9 +333,9 @@ class HuffmanCodec(PrefixCodec):
             heappush(heap, merged)
 
         # Code table is dictionary mapping symbol to (bitsize, value)
-        table = dict(heappop(heap)[1])
+        table = CodeTable(dict(heappop(heap)[1]))
 
-        return cls(table, concat=concat, check=False, eof=eof)
+        return cls(table, concat=concat, eof=eof)
 
     @classmethod
     def from_data(cls, data: Union[str, bytes, Iterable]) -> "HuffmanCodec":
