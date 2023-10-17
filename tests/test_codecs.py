@@ -1,7 +1,7 @@
 import pytest
 
 from dahuffman import load_json, load_json_compact
-from dahuffman.codecs import get_path, load, load_shakespeare, load_shakespeare_lower, load_xml
+from dahuffman.codecs import load, load_shakespeare, load_shakespeare_lower, load_xml
 
 LOREM_IPSUM = """
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
@@ -11,16 +11,16 @@ LOREM_IPSUM = """
 """
 
 
-def test_get_path():
-    assert get_path("shakespeare") == get_path("shakespeare.pickle")
-
-
-@pytest.mark.parametrize('name', [
-    'shakespeare',
-    'shakespeare-lower',
-    'json',
-    'xml',
-])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "shakespeare",
+        "shakespeare.pickle",
+        "shakespeare-lower",
+        "json",
+        "xml",
+    ],
+)
 def test_encode_decode(name):
     codec = load(name)
     data = LOREM_IPSUM.lower()

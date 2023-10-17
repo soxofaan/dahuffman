@@ -5,10 +5,9 @@ HuffmanCodec code tables.
 
 """
 
+import importlib.resources
 from functools import partial
 from pathlib import Path
-
-import pkg_resources
 
 from dahuffman.huffmancodec import PrefixCodec
 
@@ -20,14 +19,11 @@ def load(name: str) -> PrefixCodec:
     >>> load("shakespeare")
     <dahuffman.huffmancodec.HuffmanCodec object at 0x107fe5b70>
     """
-    return PrefixCodec.load(get_path(name))
-
-
-def get_path(name: str) -> Path:
     if not name.endswith(".pickle"):
         name = name + ".pickle"
-    path = pkg_resources.resource_filename("dahuffman", "codecs/" + name)
-    return Path(path)
+    with importlib.resources.path("dahuffman.codecs", resource=name) as path:
+        return PrefixCodec.load(path)
+
 
 
 load_shakespeare = partial(load, "shakespeare")
