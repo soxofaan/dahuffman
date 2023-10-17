@@ -51,7 +51,7 @@ def _guess_concat(data: Any) -> Callable:
     Guess concat function from given data
     """
     return {
-        type(u""): u"".join,
+        type(""): "".join,
         type(b""): bytes,
     }.get(type(data), list)
 
@@ -104,13 +104,22 @@ class PrefixCodec:
         """
         # TODO: add sort options?
         # Render table cells as string
-        columns = list(zip(*itertools.chain(
-            [('Bits', 'Code', 'Value', 'Symbol')],
-            (
-                (str(bits), bin(val)[2:].rjust(bits, '0'), str(val), repr(symbol))
-                for symbol, (bits, val) in self._table.items()
+        columns = list(
+            zip(
+                *itertools.chain(
+                    [("Bits", "Code", "Value", "Symbol")],
+                    (
+                        (
+                            str(bits),
+                            bin(val)[2:].rjust(bits, "0"),
+                            str(val),
+                            repr(symbol),
+                        )
+                        for symbol, (bits, val) in self._table.items()
+                    ),
+                )
             )
-        )))
+        )
         # Find column widths and build row template
         widths = tuple(max(len(s) for s in col) for col in columns)
         template = "{0:>%d} {1:%d} {2:>%d} {3}\n" % widths[:3]
@@ -221,9 +230,11 @@ class PrefixCodec:
         with path.open(mode="wb") as f:
             # TODO also provide JSON option? Requires handling of _EOF and possibly other non-string code table keys.
             pickle.dump(data, file=f)
-        _log.info('Saved {c} code table ({l} items) to {p!r}'.format(
-            c=type(self).__name__, l=len(code_table), p=str(path)
-        ))
+        _log.info(
+            "Saved {c} code table ({l} items) to {p!r}".format(
+                c=type(self).__name__, l=len(code_table), p=str(path)
+            )
+        )
 
     @staticmethod
     def load(path: Union[str, Path]) -> "PrefixCodec":
@@ -238,9 +249,11 @@ class PrefixCodec:
         cls = data["type"]
         assert issubclass(cls, PrefixCodec)
         code_table = data["code_table"]
-        _log.info('Loading {c} with {l} code table items from {p!r}'.format(
-            c=cls.__name__, l=len(code_table), p=str(path)
-        ))
+        _log.info(
+            "Loading {c} with {l} code table items from {p!r}".format(
+                c=cls.__name__, l=len(code_table), p=str(path)
+            )
+        )
         return cls(code_table, concat=data["concat"])
 
 
@@ -281,7 +294,7 @@ class HuffmanCodec(PrefixCodec):
             merged = (
                 a[0] + b[0],
                 [(s, (n + 1, v)) for (s, (n, v)) in a[1]]
-                + [(s, (n + 1, (1 << n) + v)) for (s, (n, v)) in b[1]]
+                + [(s, (n + 1, (1 << n) + v)) for (s, (n, v)) in b[1]],
             )
             heappush(heap, merged)
 

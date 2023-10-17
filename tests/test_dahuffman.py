@@ -20,11 +20,14 @@ def test_prefix_codec():
     assert encoded == b"\x14"
 
 
-@pytest.mark.parametrize('data', [
-    "hello world, how are you doing today?",
-    b"hello world, how are you doing today?",
-    u"hëllò wørl∂, høw åré ¥øü døin§ tø∂@¥?",
-])
+@pytest.mark.parametrize(
+    "data",
+    [
+        "hello world, how are you doing today?",
+        b"hello world, how are you doing today?",
+        "hëllò wørl∂, høw åré ¥øü døin§ tø∂@¥?",
+    ],
+)
 def test_string_data(data):
     codec = HuffmanCodec.from_data(data)
     encoded = codec.encode(data)
@@ -40,15 +43,22 @@ def test_decode_int_list():
     assert decoded == "exeneeeexniqneieini"
 
 
-@pytest.mark.parametrize('data', [
-    [(1, 1), (2, 1), (1, 1), ],
-    ['apple', 'pear', 'orange', 'apple', 'lemon', 'pear'],
-    [('king', 'w'), ('queen', 'e', 3), ('pawn', 'n'), ('king', 'w')],
-])
+@pytest.mark.parametrize(
+    "data",
+    [
+        [
+            (1, 1),
+            (2, 1),
+            (1, 1),
+        ],
+        ["apple", "pear", "orange", "apple", "lemon", "pear"],
+        [("king", "w"), ("queen", "e", 3), ("pawn", "n"), ("king", "w")],
+    ],
+)
 def test_non_string_symbols(data):
     codec = HuffmanCodec.from_data(data)
     encoded = codec.encode(data)
-    assert type(encoded) == type(b'')
+    assert type(encoded) == type(b"")
     decoded = codec.decode(encoded)
     assert decoded == data
 
@@ -87,7 +97,11 @@ def test_print_code_table2():
     out = io.StringIO()
     codec.print_code_table(out=out)
     actual = out.getvalue().split("\n")
-    expected = "Bits Code Value Symbol\n   1 0        0 _EOF\n   1 1        1 'a'\n".split('\n')
+    expected = (
+        "Bits Code Value Symbol\n   1 0        0 _EOF\n   1 1        1 'a'\n".split(
+            "\n"
+        )
+    )
     assert actual[0] == expected[0]
     assert set(actual[1:]) == set(expected[1:])
 
@@ -98,13 +112,24 @@ def test_eof_cut_off():
     # B   -> 11
     # C   -> 101
     # EOF -> 100
-    codec = HuffmanCodec.from_frequencies({'A': 5, 'B': 4, 'C': 2, })
+    codec = HuffmanCodec.from_frequencies(
+        {
+            "A": 5,
+            "B": 4,
+            "C": 2,
+        }
+    )
     cases = {
         # Straightforward cases
-        '': 0, 'A': 1, 'AB': 1, 'ABB': 1, 'CCC': 2,
+        "": 0,
+        "A": 1,
+        "AB": 1,
+        "ABB": 1,
+        "CCC": 2,
         # Cases where EOF cut-off saves one output byte
-        'ACC': 1, 'CC': 1,
-        'CCCCC': 2,
+        "ACC": 1,
+        "CC": 1,
+        "CCCCC": 2,
     }
     for data, expected_length in cases.items():
         encoded = codec.encode(data)

@@ -25,7 +25,6 @@ def load(name: str) -> PrefixCodec:
         return PrefixCodec.load(path)
 
 
-
 load_shakespeare = partial(load, "shakespeare")
 load_shakespeare_lower = partial(load, "shakespeare-lower")
 load_json = partial(load, "json")
