@@ -21,17 +21,18 @@ class _EndOfFileSymbol:
     def __repr__(self) -> str:
         return "_EOF"
 
-    # Because _EOF will be compared with normal symbols (strings, bytes),
-    # we have to provide a minimal set of comparison methods.
-    # We'll make _EOF smaller than the rest (meaning lowest frequency)
-    def __lt__(self, other) -> bool:
-        return True
-
-    def __gt__(self, other) -> bool:
-        return False
-
     def __eq__(self, other) -> bool:
         return other.__class__ == self.__class__
+
+    # Because _EOF will be compared with normal symbols (strings, bytes),
+    # we have to provide a minimal set of comparison methods. We'll make
+    # _EOF smaller than all values other than itself since there will
+    # always be 1 and only 1 end of file per file.
+    def __lt__(self, other) -> bool:
+        return self != other
+
+    def __gt__(self, other) -> bool:
+        return self == other
 
     def __hash__(self) -> int:
         return hash(self.__class__)
