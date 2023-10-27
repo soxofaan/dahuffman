@@ -3,10 +3,6 @@ import pytest
 from dahuffman.huffmancodec import _EOF
 
 
-def test_eq():
-    assert _EOF == _EOF
-
-
 @pytest.fixture(params=(
     b"\0",
     b"abc",
@@ -27,9 +23,13 @@ def to_compare(request):
     return request.param
 
 
-def test_lt(to_compare):
-    assert _EOF < to_compare
+class TestEndOfFileSymbol:
 
+    def test_eq(self):
+        assert _EOF == _EOF
 
-def test_gt(to_compare):
-    assert to_compare > _EOF
+    def test_lt(self, to_compare):
+        assert _EOF < to_compare
+
+    def test_gt(self, to_compare):
+        assert to_compare > _EOF
