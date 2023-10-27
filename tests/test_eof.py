@@ -7,19 +7,24 @@ def test_eq():
     assert _EOF == _EOF
 
 
-@pytest.fixture(params=(b'a', b'\0', b'_EOF'))
-def raw_value(request):
+@pytest.fixture(params=(
+    b"\0",
+    b"abc",
+    "abc",
+    0,
+    100,
+    -1000,
+    False,
+    True,
+    None,
+    [],
+    (),
+    {},
+    [-100, 0, 10],
+    (-100, 10))
+)
+def to_compare(request):
     return request.param
-
-
-@pytest.fixture(params=(lambda b: b.decode('utf-8'), bytes, tuple))
-def of_type(request):
-    return request.param
-
-
-@pytest.fixture
-def to_compare(raw_value, of_type):
-    return of_type(raw_value)
 
 
 def test_lt(to_compare):
