@@ -3,7 +3,7 @@ import logging
 from collections import Counter
 
 from dahuffman import HuffmanCodec
-from train.train_utils import download, CODECS
+from train.train_utils import CODECS, download
 
 _log = logging.getLogger()
 
@@ -34,21 +34,23 @@ def main():
         "https://data.mo.gov/api/views/vpge-tj3s/rows.xml",
     ]
 
-    _log.info('Building frequency tables')
+    _log.info("Building frequency tables")
     frequencies = Counter()
     for url in urls:
-        path = download(url, 'xml-data/' + hashlib.md5(url.encode('utf-8')).hexdigest() + '.xml')
-        with path.open('r') as f:
+        path = download(
+            url, "xml-data/" + hashlib.md5(url.encode("utf-8")).hexdigest() + ".xml"
+        )
+        with path.open("r") as f:
             # Only take first N bytes.
             # Large files probably have a lot of structural repetition, which skews the frequencies
             raw = f.read(100000)
         frequencies.update(raw)
 
     # TODO add more metadata
-    _log.info(f'Frequencies raw {len(frequencies)}: {frequencies}')
+    _log.info(f"Frequencies raw {len(frequencies)}: {frequencies}")
     codec = HuffmanCodec.from_frequencies(frequencies)
     codec.save(CODECS / "xml.pickle", metadata={"frequencies": frequencies})
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
