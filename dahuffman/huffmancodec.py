@@ -89,6 +89,8 @@ class PrefixCodec:
                 for (b, v) in self._table.values()
             )
             # TODO check if code table is actually a prefix code
+            # TODO check if eof is in the table
+            # TODO if no eof in table: automatically add entry?
 
     def get_code_table(self) -> dict:
         """
