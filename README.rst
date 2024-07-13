@@ -50,7 +50,9 @@ Usage
 Basic usage example, where the code table is built based on given symbol frequencies::
 
     >>> from dahuffman import HuffmanCodec
-    >>> codec = HuffmanCodec.from_frequencies({'e': 100, 'n':20, 'x':1, 'i': 40, 'q':3})
+    >>> codec = HuffmanCodec.from_frequencies(
+    ...     {"e": 100, "n": 20, "x": 1, "i": 40, "q": 3}
+    ... )
     >>> codec.print_code_table()
     Bits Code  Value Symbol
        5 00000     0 _EOF
@@ -62,7 +64,7 @@ Basic usage example, where the code table is built based on given symbol frequen
 
 Encode a string, get the encoded data as ``bytes`` and decode again::
 
-    >>> encoded = codec.encode('exeneeeexniqneieini')
+    >>> encoded = codec.encode("exeneeeexniqneieini")
     >>> encoded
     b'\x86|%\x13i@'
     >>> len(encoded)
@@ -80,8 +82,10 @@ If desired: work with byte values directly:
 
 You can also "train" the codec by providing it data directly::
 
-    >>> codec = HuffmanCodec.from_data('hello world how are you doing today foo bar lorem ipsum')
-    >>> codec.encode('do lo er ad od')
+    >>> codec = HuffmanCodec.from_data(
+    ...    "hello world how are you doing today foo bar lorem ipsum"
+    ... )
+    >>> codec.encode("do lo er ad od")
     b'^O\x1a\xc4S\xab\x80'
     >>> len(_)
     7
@@ -89,9 +93,9 @@ You can also "train" the codec by providing it data directly::
 
 Using it with sequences of symbols (country codes in this example)::
 
-    >>> countries = ['FR', 'UK', 'BE', 'IT', 'FR', 'IT', 'GR', 'FR', 'NL', 'BE', 'DE']
+    >>> countries = ["FR", "UK", "BE", "IT", "FR", "IT", "GR", "FR", "NL", "BE", "DE"]
     >>> codec = HuffmanCodec.from_data(countries)
-    >>> encoded = codec.encode(['FR', 'IT', 'BE', 'FR', 'UK'])
+    >>> encoded = codec.encode(["FR", "IT", "BE", "FR", "UK"])
     >>> encoded
     b'L\xca'
     >>> len(encoded)
