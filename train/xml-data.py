@@ -3,6 +3,7 @@ import logging
 from collections import Counter
 
 from dahuffman import HuffmanCodec
+from dahuffman.codetableio import json_save, pickle_save
 from train.train_utils import CODECS, download
 
 _log = logging.getLogger()
@@ -49,7 +50,12 @@ def main():
     # TODO add more metadata
     _log.info(f"Frequencies raw {len(frequencies)}: {frequencies}")
     codec = HuffmanCodec.from_frequencies(frequencies)
-    codec.save(CODECS / "xml.pickle", metadata={"frequencies": frequencies})
+    pickle_save(
+        codec=codec, path=CODECS / "xml.pickle", metadata={"frequencies": frequencies}
+    )
+    json_save(
+        codec=codec, path=CODECS / "xml.json", metadata={"frequencies": frequencies}
+    )
 
 
 if __name__ == "__main__":
