@@ -9,3 +9,4 @@ dist
 build
 .ipynb_checkpoints
 tmp
+.vscode/
