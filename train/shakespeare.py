@@ -9,6 +9,7 @@ import re
 from collections import Counter
 
 from dahuffman import HuffmanCodec
+from dahuffman.codetableio import json_save, pickle_save
 from train.train_utils import CODECS, download
 
 _log = logging.getLogger()
@@ -27,7 +28,16 @@ def main():
     frequencies = Counter(raw)
     _log.info(f"Frequencies {len(frequencies)}: {frequencies}")
     codec = HuffmanCodec.from_frequencies(frequencies)
-    codec.save(CODECS / "shakespeare-raw.pickle", metadata={"frequencies": frequencies})
+    pickle_save(
+        codec=codec,
+        path=CODECS / "shakespeare-raw.pickle",
+        metadata={"frequencies": frequencies},
+    )
+    json_save(
+        codec=codec,
+        path=CODECS / "shakespeare-raw.json",
+        metadata={"frequencies": frequencies},
+    )
 
     _log.info("Doing white space clean up")
     clean = raw
@@ -36,15 +46,31 @@ def main():
     frequencies = Counter(clean)
     _log.info(f"Frequencies {len(frequencies)}: {frequencies}")
     codec = HuffmanCodec.from_frequencies(frequencies)
-    codec.save(CODECS / "shakespeare.pickle", metadata={"frequencies": frequencies})
+    pickle_save(
+        codec=codec,
+        path=CODECS / "shakespeare.pickle",
+        metadata={"frequencies": frequencies},
+    )
+    json_save(
+        codec=codec,
+        path=CODECS / "shakespeare.json",
+        metadata={"frequencies": frequencies},
+    )
 
     _log.info("Only handling lower case")
     lower = clean.lower()
     frequencies = Counter(lower)
     _log.info(f"Frequencies {len(frequencies)}: {frequencies}")
     codec = HuffmanCodec.from_frequencies(frequencies)
-    codec.save(
-        CODECS / "shakespeare-lower.pickle", metadata={"frequencies": frequencies}
+    pickle_save(
+        codec=codec,
+        path=CODECS / "shakespeare-lower.pickle",
+        metadata={"frequencies": frequencies},
+    )
+    json_save(
+        codec=codec,
+        path=CODECS / "shakespeare-lower.json",
+        metadata={"frequencies": frequencies},
     )
 
 
