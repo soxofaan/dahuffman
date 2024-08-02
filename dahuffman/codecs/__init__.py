@@ -30,3 +30,5 @@ load_shakespeare_lower = partial(load, "shakespeare-lower")
 load_json = partial(load, "json")
 load_json_compact = partial(load, "json-compact")
 load_xml = partial(load, "xml")
+load_hpack = partial(load, "hpack")
+
