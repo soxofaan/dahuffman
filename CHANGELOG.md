@@ -13,4 +13,3 @@
 # 0.4.1 (2020-06-10)
 
 - Fix packaging of `dahuffman.codecs` ([#10](https://github.com/soxofaan/dahuffman/issues/10))
-
