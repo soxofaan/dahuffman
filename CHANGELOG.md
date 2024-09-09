@@ -1,6 +1,7 @@
 
 
-# Unreleased: 0.4.2
+
+# 0.4.2 (2024-09-09)
 
 - Switch to GitHub Actions for CI (instead of Travis CI)
 - Various documentation and readme tweaks
