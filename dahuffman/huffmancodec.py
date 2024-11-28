@@ -1,8 +1,8 @@
 import collections
 import itertools
 import logging
-import pickle
 import sys
+import warnings
 from heapq import heapify, heappop, heappush
 from io import IOBase
 from pathlib import Path
@@ -53,14 +53,6 @@ def _guess_concat(data: Any) -> Callable:
         type(""): "".join,
         type(b""): bytes,
     }.get(type(data), list)
-
-
-def ensure_dir(path: Union[str, Path]) -> Path:
-    path = Path(path)
-    if not path.exists():
-        path.mkdir(parents=True)
-    assert path.is_dir()
-    return path
 
 
 class PrefixCodec:
@@ -218,23 +210,14 @@ class PrefixCodec:
         :param metadata: additional metadata
         :return:
         """
-        code_table = self.get_code_table()
-        data = {
-            "code_table": code_table,
-            "type": type(self),
-            "concat": self._concat,
-        }
-        if metadata:
-            data["metadata"] = metadata
-        path = Path(path)
-        ensure_dir(path.parent)
-        with path.open(mode="wb") as f:
-            # TODO also provide JSON option? Requires handling of _EOF and possibly other non-string code table keys.
-            pickle.dump(data, file=f)
-        _log.info(
-            "Saved {c} code table ({l} items) to {p!r}".format(
-                c=type(self).__name__, l=len(code_table), p=str(path)
-            )
+        warnings.warn(
+            "`PrefixCodec.save()` is deprecated, use `dahuffman.codetableio` functionality instead",
+            DeprecationWarning,
+        )
+        import dahuffman.codetableio
+
+        return dahuffman.codetableio.pickle_save(
+            codec=self, path=path, metadata=metadata
         )
 
     @staticmethod
@@ -244,18 +227,13 @@ class PrefixCodec:
         :param path: path to serialized PrefixCodec code table data.
         :return:
         """
-        path = Path(path)
-        with path.open(mode="rb") as f:
-            data = pickle.load(f)
-        cls = data["type"]
-        assert issubclass(cls, PrefixCodec)
-        code_table = data["code_table"]
-        _log.info(
-            "Loading {c} with {l} code table items from {p!r}".format(
-                c=cls.__name__, l=len(code_table), p=str(path)
-            )
+        warnings.warn(
+            "`PrefixCodec.load()` is deprecated, use `dahuffman.codetableio` functionality instead",
+            DeprecationWarning,
         )
-        return cls(code_table, concat=data["concat"])
+        import dahuffman.codetableio
+
+        return dahuffman.codetableio.pickle_load(path=path)
 
 
 class HuffmanCodec(PrefixCodec):

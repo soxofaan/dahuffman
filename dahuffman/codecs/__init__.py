@@ -9,6 +9,7 @@ import importlib.resources
 from functools import partial
 from pathlib import Path
 
+import dahuffman.codetableio
 from dahuffman.huffmancodec import PrefixCodec
 
 
@@ -22,7 +23,7 @@ def load(name: str) -> PrefixCodec:
     if not name.endswith(".pickle"):
         name = name + ".pickle"
     with importlib.resources.path("dahuffman.codecs", resource=name) as path:
-        return PrefixCodec.load(path)
+        return dahuffman.codetableio.pickle_load(path)
 
 
 load_shakespeare = partial(load, "shakespeare")

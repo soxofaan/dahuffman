@@ -136,7 +136,7 @@ def test_eof_cut_off():
         assert data == codec.decode(encoded)
 
 
-def test_save(tmp_path: Path):
+def test_save_and_load(tmp_path: Path):
     codec1 = HuffmanCodec.from_data("aabcbcdbabdbcbd")
     path = str(tmp_path / "foo" / "bar.huff")
     codec1.save(path)
